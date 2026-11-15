@@ -1,20 +1,137 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { Send, MapPin, Phone, Mail, CheckCircle2, ArrowUpRight } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Send,
+  MapPin,
+  Phone,
+  Mail,
+  CheckCircle2,
+  ArrowUpRight,
+  ChevronDown,
+  Check,
+  Tv,
+  Sparkles,
+  Package,
+  FileText,
+  Image as ImageIcon,
+  Flame,
+  Printer,
+  Film,
+  Box,
+  Layers,
+  Briefcase,
+} from "lucide-react";
 import confetti from "canvas-confetti";
 import { DESIGNER_INFO } from "@/data/projectsData";
+
+export interface CreativeDomainOption {
+  id: string;
+  label: string;
+  subtitle: string;
+  icon: React.ComponentType<{ className?: string }>;
+  tag?: string;
+}
+
+export const CREATIVE_DOMAINS: CreativeDomainOption[] = [
+  {
+    id: "broadcast-branding",
+    label: "Broadcasting & Television Identity",
+    subtitle: "Complete TV network identity suites, program packages, news graphics & title sequences",
+    icon: Tv,
+    tag: "SIGNATURE",
+  },
+  {
+    id: "media-pack-editorial",
+    label: "Corporate Media Packs & Decks",
+    subtitle: "30+ spread corporate profiles, broadcast sponsorship architectures & publication decks",
+    icon: FileText,
+    tag: "37-PAGE",
+  },
+  {
+    id: "brand-identity",
+    label: "Full Brand Identity & Design Systems",
+    subtitle: "Comprehensive visual identity design, logo variations, typography & brand guidelines",
+    icon: Sparkles,
+  },
+  {
+    id: "product-packaging",
+    label: "Product Packaging & Retail FMCG",
+    subtitle: "Tactile retail packaging for coffee, food hospitality, beverage & grooming products",
+    icon: Package,
+  },
+  {
+    id: "key-art-posters",
+    label: "Key Art & Cinematic Event Posters",
+    subtitle: "Combat sports championships, concert key art, television posters & festival campaigns",
+    icon: ImageIcon,
+  },
+  {
+    id: "digital-youtube",
+    label: "High-CTR Digital & YouTube Packaging",
+    subtitle: "Conversion-optimized YouTube thumbnails, digital key visuals & multi-million reach visuals",
+    icon: Flame,
+    tag: "HIGH-CTR",
+  },
+  {
+    id: "motion-graphics",
+    label: "Motion Design & On-Air Sequences",
+    subtitle: "Dynamic lower thirds, channel stings, logo animations & broadcast bumpers",
+    icon: Film,
+  },
+  {
+    id: "print-prepress",
+    label: "Luxury Print Production & Editorial",
+    subtitle: "Fine-art restaurant menus, VIP tickets, event passes & corporate publication collateral",
+    icon: Printer,
+  },
+  {
+    id: "3d-cgi",
+    label: "3D Visualization & Brand Mockups",
+    subtitle: "Photorealistic product mockups, 3D typography & spatial visual assets",
+    icon: Box,
+  },
+  {
+    id: "art-direction",
+    label: "Comprehensive Creative & Art Direction",
+    subtitle: "End-to-end creative leadership for national television & corporate campaigns",
+    icon: Layers,
+  },
+  {
+    id: "custom-scope",
+    label: "Bespoke / Custom Creative Commission",
+    subtitle: "Custom project scope tailored specifically to your unique vision, timeline and goals",
+    icon: Briefcase,
+  },
+];
 
 export default function ContactSection() {
   const [isDispatching, setIsDispatching] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    projectType: "Brand Identity",
+    projectType: CREATIVE_DOMAINS[0].label,
     message: "",
   });
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedDomain =
+    CREATIVE_DOMAINS.find((d) => d.label === formData.projectType) || CREATIVE_DOMAINS[0];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -254,7 +371,7 @@ export default function ContactSection() {
                 <button
                   onClick={() => {
                     setFormSubmitted(false);
-                    setFormData({ name: "", email: "", projectType: "Brand Identity", message: "" });
+                    setFormData({ name: "", email: "", projectType: CREATIVE_DOMAINS[0].label, message: "" });
                   }}
                   className="mt-4 px-6 py-2.5 rounded-full glass-button text-xs text-white/80 hover:text-white"
                 >
@@ -302,32 +419,130 @@ export default function ContactSection() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold text-white/70 uppercase tracking-wider">
-                    Creative Domain
-                  </label>
-                  <select
-                    value={formData.projectType}
-                    onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
-                    className="w-full px-4 py-3 rounded-2xl glass-card text-sm text-white bg-[#0a0d14] focus:outline-none focus:border-amber-400/50 transition-colors cursor-pointer"
+                <div className="space-y-2 relative" ref={dropdownRef}>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-white/70 uppercase tracking-wider">
+                      Creative Domain
+                    </label>
+                    <span className="text-[10px] font-mono text-amber-400 font-semibold">
+                      {CREATIVE_DOMAINS.length} Disciplines Available
+                    </span>
+                  </div>
+
+                  {/* Custom Dropdown Trigger Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="w-full px-4 py-3.5 rounded-2xl glass-card text-sm text-white flex items-center justify-between focus:outline-none focus:border-amber-400/50 hover:border-white/30 transition-all cursor-pointer group bg-[#080c16]/80 backdrop-blur-xl"
+                    aria-haspopup="listbox"
+                    aria-expanded={isDropdownOpen}
                   >
-                    <option value="Broadcasting & Television Packaging">
-                      Broadcasting & Television Packaging
-                    </option>
-                    <option value="Full Brand Identity & Systems">
-                      Full Brand Identity & Systems
-                    </option>
-                    <option value="Product & FMCG Packaging">Product & FMCG Packaging</option>
-                    <option value="Key Art & Event Poster Campaigns">
-                      Key Art & Event Poster Campaigns
-                    </option>
-                    <option value="High-CTR YouTube / Digital Packaging">
-                      High-CTR YouTube / Digital Packaging
-                    </option>
-                    <option value="Corporate Media Kit & Editorial Deck">
-                      Corporate Media Kit & Editorial Deck
-                    </option>
-                  </select>
+                    <div className="flex items-center gap-3 overflow-hidden text-left">
+                      <div className="w-8 h-8 rounded-xl bg-amber-400/10 border border-amber-400/20 text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <selectedDomain.icon className="w-4 h-4" />
+                      </div>
+                      <div className="truncate">
+                        <span className="text-sm font-semibold text-white block truncate">
+                          {selectedDomain.label}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {selectedDomain.tag && (
+                        <span className="hidden sm:inline-block text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-400/15 border border-amber-400/30 text-amber-300">
+                          {selectedDomain.tag}
+                        </span>
+                      )}
+                      <ChevronDown
+                        className={`w-4 h-4 text-white/60 transition-transform duration-300 ${
+                          isDropdownOpen ? "rotate-180 text-amber-400" : "group-hover:text-white"
+                        }`}
+                      />
+                    </div>
+                  </button>
+
+                  {/* Animated Liquid Glass Popover Menu */}
+                  <AnimatePresence>
+                    {isDropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl glass-panel bg-[#070b14]/98 border border-white/20 p-2 shadow-[0_25px_70px_rgba(0,0,0,0.95)] backdrop-blur-2xl max-h-80 overflow-y-auto space-y-1"
+                        style={{
+                          scrollbarWidth: "thin",
+                          scrollbarColor: "rgba(245,158,11,0.3) rgba(255,255,255,0.05)",
+                        }}
+                      >
+                        <div className="px-3 py-1.5 border-b border-white/5 mb-1 flex items-center justify-between">
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-white/40">
+                            Select Creative Discipline
+                          </span>
+                          <span className="text-[10px] font-mono text-amber-400/80">
+                            {CREATIVE_DOMAINS.length} Options
+                          </span>
+                        </div>
+
+                        {CREATIVE_DOMAINS.map((domain) => {
+                          const isSelected = domain.label === formData.projectType;
+                          const IconComponent = domain.icon;
+                          return (
+                            <button
+                              key={domain.id}
+                              type="button"
+                              onClick={() => {
+                                setFormData({ ...formData, projectType: domain.label });
+                                setIsDropdownOpen(false);
+                              }}
+                              className={`w-full p-2.5 rounded-xl text-left flex items-center justify-between transition-all duration-200 cursor-pointer group ${
+                                isSelected
+                                  ? "bg-amber-400/15 border border-amber-400/40 text-white"
+                                  : "hover:bg-white/5 border border-transparent text-white/80 hover:text-white"
+                              }`}
+                            >
+                              <div className="flex items-start gap-3 min-w-0 pr-2">
+                                <div
+                                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${
+                                    isSelected
+                                      ? "bg-amber-400 text-black shadow-[0_0_12px_rgba(245,158,11,0.5)]"
+                                      : "bg-white/5 border border-white/10 text-white/70 group-hover:text-amber-400 group-hover:border-amber-400/30"
+                                  }`}
+                                >
+                                  <IconComponent className="w-4 h-4" />
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span
+                                      className={`text-xs sm:text-sm font-semibold truncate ${
+                                        isSelected ? "text-amber-300 font-bold" : "group-hover:text-amber-300"
+                                      }`}
+                                    >
+                                      {domain.label}
+                                    </span>
+                                    {domain.tag && (
+                                      <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded bg-white/10 text-white/60 shrink-0">
+                                        {domain.tag}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[11px] text-white/45 leading-snug line-clamp-1 group-hover:text-white/65 transition-colors">
+                                    {domain.subtitle}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {isSelected && (
+                                <div className="w-5 h-5 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-400 flex items-center justify-center shrink-0 ml-2">
+                                  <Check className="w-3 h-3" />
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <div className="space-y-2">
