@@ -96,6 +96,106 @@ export const MEDIA_PACK_PAGES: DocumentPage[] = Array.from({ length: 37 }, (_, i
   };
 });
 
+
+export const ETFC_MEDIA_PACK_PAGES: DocumentPage[] = [
+  {
+    pageNumber: 1,
+    image: "/images/etfc-media-pack/etfc-media-pack-page-001.png",
+    thumbnail: "/images/etfc-media-pack/thumbs/etfc-media-pack-thumb-001.jpg",
+    title: "Cover: ETFC Adwa Champion Official Media Partnership & Sponsorship Package"
+  },
+  {
+    pageNumber: 2,
+    image: "/images/etfc-media-pack/etfc-media-pack-page-002.png",
+    thumbnail: "/images/etfc-media-pack/thumbs/etfc-media-pack-thumb-002.jpg",
+    title: "ETFC Adwa Fight Night: Live Boxing Transmission"
+  },
+  {
+    pageNumber: 3,
+    image: "/images/etfc-media-pack/etfc-media-pack-page-003.png",
+    thumbnail: "/images/etfc-media-pack/thumbs/etfc-media-pack-thumb-003.jpg",
+    title: "Event Overview: Elite Combat Sports & Abbay TV Official Media Partnership"
+  },
+  {
+    pageNumber: 4,
+    image: "/images/etfc-media-pack/etfc-media-pack-page-004.png",
+    thumbnail: "/images/etfc-media-pack/thumbs/etfc-media-pack-thumb-004.jpg",
+    title: "Event Snapshot: Disciplines, Broadcast Partner, Museum Venue & Ad Assets"
+  },
+  {
+    pageNumber: 5,
+    image: "/images/etfc-media-pack/etfc-media-pack-page-005.png",
+    thumbnail: "/images/etfc-media-pack/thumbs/etfc-media-pack-thumb-005.jpg",
+    title: "Audience Momentum: High-Impact Digital Reach & Broadcast Retention"
+  },
+  {
+    pageNumber: 6,
+    image: "/images/etfc-media-pack/etfc-media-pack-page-006.png",
+    thumbnail: "/images/etfc-media-pack/thumbs/etfc-media-pack-thumb-006.jpg",
+    title: "Why Sponsor This Event & Why Partner with Abbay TV?"
+  },
+  {
+    pageNumber: 7,
+    image: "/images/etfc-media-pack/etfc-media-pack-page-007.png",
+    thumbnail: "/images/etfc-media-pack/thumbs/etfc-media-pack-thumb-007.jpg",
+    title: "Diamond Sponsorship Partner: Live Broadcast Benefits (ETB 3.5M)"
+  },
+  {
+    pageNumber: 8,
+    image: "/images/etfc-media-pack/etfc-media-pack-page-008.png",
+    thumbnail: "/images/etfc-media-pack/thumbs/etfc-media-pack-thumb-008.jpg",
+    title: "Diamond Sponsorship Partner: Digital & Social Media Visibility"
+  },
+  {
+    pageNumber: 9,
+    image: "/images/etfc-media-pack/etfc-media-pack-page-009.png",
+    thumbnail: "/images/etfc-media-pack/thumbs/etfc-media-pack-thumb-009.jpg",
+    title: "Diamond Post-Event Value & Broadcast Spot Matrix"
+  },
+  {
+    pageNumber: 10,
+    image: "/images/etfc-media-pack/etfc-media-pack-page-010.png",
+    thumbnail: "/images/etfc-media-pack/thumbs/etfc-media-pack-thumb-010.jpg",
+    title: "Gold Sponsorship Partner: Live Broadcast Benefits (ETB 2.5M)"
+  },
+  {
+    pageNumber: 11,
+    image: "/images/etfc-media-pack/etfc-media-pack-page-011.png",
+    thumbnail: "/images/etfc-media-pack/thumbs/etfc-media-pack-thumb-011.jpg",
+    title: "Gold Sponsorship Partner: Digital & Multi-Platform Benefits"
+  },
+  {
+    pageNumber: 12,
+    image: "/images/etfc-media-pack/etfc-media-pack-page-012.png",
+    thumbnail: "/images/etfc-media-pack/thumbs/etfc-media-pack-thumb-012.jpg",
+    title: "Gold Post-Event Value & Airtime Spot Matrix"
+  },
+  {
+    pageNumber: 13,
+    image: "/images/etfc-media-pack/etfc-media-pack-page-013.png",
+    thumbnail: "/images/etfc-media-pack/thumbs/etfc-media-pack-thumb-013.jpg",
+    title: "Silver Sponsorship Partner: Live Broadcast Benefits (ETB 1.5M)"
+  },
+  {
+    pageNumber: 14,
+    image: "/images/etfc-media-pack/etfc-media-pack-page-014.png",
+    thumbnail: "/images/etfc-media-pack/thumbs/etfc-media-pack-thumb-014.jpg",
+    title: "Silver Sponsorship Partner: Digital & Social Exposure"
+  },
+  {
+    pageNumber: 15,
+    image: "/images/etfc-media-pack/etfc-media-pack-page-015.png",
+    thumbnail: "/images/etfc-media-pack/thumbs/etfc-media-pack-thumb-015.jpg",
+    title: "Silver Post-Event Value & Airtime Spot Matrix"
+  },
+  {
+    pageNumber: 16,
+    image: "/images/etfc-media-pack/etfc-media-pack-page-016.png",
+    thumbnail: "/images/etfc-media-pack/thumbs/etfc-media-pack-thumb-016.jpg",
+    title: "Official Champion Belt & Abbay TV Partnership Sales Contacts"
+  }
+];
+
 export const PROJECTS: Project[] = [
   {
     id: "abbay-media-pack-complete",

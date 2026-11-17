@@ -22,6 +22,7 @@ export default function Home() {
   const [activeProject, setActiveProject] = useState<Project>(PROJECTS[0]);
   const [modalProject, setModalProject] = useState<Project | null>(null);
   const [mediaPackOpen, setMediaPackOpen] = useState<boolean>(false);
+  const [activeDocumentProject, setActiveDocumentProject] = useState<Project | null>(null);
   const [activeSection, setActiveSection] = useState<string>("home");
 
   const featuredProjects = PROJECTS.filter((p) => p.featured);
@@ -32,11 +33,18 @@ export default function Home() {
   }, []);
 
   const handleOpenProject = useCallback((project: Project) => {
-    if (project.isDocument || project.id === "abbay-media-pack-complete") {
+    if (project.isDocument || project.id === "abbay-media-pack-complete" || project.id === "etfc-adwa-media-pack") {
+      setActiveDocumentProject(project);
       setMediaPackOpen(true);
     } else {
       setModalProject(project);
     }
+  }, []);
+
+  const handleOpenDefaultMediaPack = useCallback(() => {
+    const defaultDoc = PROJECTS.find((p) => p.id === "abbay-media-pack-complete") || PROJECTS[0];
+    setActiveDocumentProject(defaultDoc);
+    setMediaPackOpen(true);
   }, []);
 
   const handleCloseModal = useCallback(() => {
@@ -104,7 +112,7 @@ export default function Home() {
       <Hero
         featuredProject={PROJECTS[0]}
         onOpenProject={handleOpenProject}
-        onOpenMediaPack={() => setMediaPackOpen(true)}
+        onOpenMediaPack={handleOpenDefaultMediaPack}
       />
 
       {/* Selected Works 3D Coverflow Showcase */}
@@ -139,7 +147,7 @@ export default function Home() {
         onPrevProject={handlePrevProject}
         onNextProject={handleNextProject}
         onOpenProject={handleOpenProject}
-        onOpenMediaPack={() => setMediaPackOpen(true)}
+        onOpenMediaPack={handleOpenDefaultMediaPack}
         activeSection={activeSection}
       />
 
@@ -149,13 +157,24 @@ export default function Home() {
         allProjects={PROJECTS}
         onClose={handleCloseModal}
         onNavigate={handleOpenProject}
-        onOpenDocumentViewer={() => setMediaPackOpen(true)}
+        onOpenDocumentViewer={() => {
+          if (modalProject?.isDocument || modalProject?.documentPages) {
+            setActiveDocumentProject(modalProject);
+          } else {
+            setActiveDocumentProject(PROJECTS[0]);
+          }
+          setMediaPackOpen(true);
+        }}
       />
 
-      {/* Dedicated Interactive 37-Page Liquid Glass Media Pack Reader */}
+      {/* Dedicated Interactive Liquid Glass Media Pack Reader */}
       <MediaPackViewer
         isOpen={mediaPackOpen}
-        onClose={() => setMediaPackOpen(false)}
+        onClose={() => {
+          setMediaPackOpen(false);
+          setActiveDocumentProject(null);
+        }}
+        project={activeDocumentProject}
       />
     </main>
   );

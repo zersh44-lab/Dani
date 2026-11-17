@@ -8,28 +8,26 @@ import {
   ChevronRight,
   ZoomIn,
   ZoomOut,
-  RotateCcw,
   Maximize2,
   Minimize2,
   Grid,
   FileText,
-  Award,
   Download,
-  Share2
 } from "lucide-react";
-import { MEDIA_PACK_PAGES, DocumentPage } from "@/data/projectsData";
-import MagneticButton from "@/components/MagneticButton";
+import { MEDIA_PACK_PAGES, DocumentPage, Project } from "@/data/projectsData";
 
 interface MediaPackViewerProps {
   isOpen: boolean;
   onClose: () => void;
   initialPage?: number;
+  project?: Project | null;
 }
 
 export default function MediaPackViewer({
   isOpen,
   onClose,
   initialPage = 1,
+  project = null,
 }: MediaPackViewerProps) {
   const [currentPage, setCurrentPage] = useState<number>(initialPage);
   const [zoomLevel, setZoomLevel] = useState<number>(1);
@@ -38,10 +36,23 @@ export default function MediaPackViewer({
   const containerRef = useRef<HTMLDivElement>(null);
   const thumbnailsRef = useRef<HTMLDivElement>(null);
 
+  // Extract document pages from project or fallback to default Media Pack
+  const pages: DocumentPage[] =
+    project && project.documentPages && project.documentPages.length > 0
+      ? project.documentPages
+      : MEDIA_PACK_PAGES;
+
+  const totalPages = pages.length;
+  const activePageData: DocumentPage = pages[currentPage - 1] || pages[0];
+
+  const docTitle = project ? project.title : "Abbay TV & Abbay Digital Media Kit";
+  const docBadge = project?.award || "Official Document Pack";
+  const docYear = project?.year || "2025 / 2026";
+
   useEffect(() => {
     setCurrentPage(initialPage);
     setZoomLevel(1);
-  }, [initialPage, isOpen]);
+  }, [initialPage, isOpen, project]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -63,7 +74,7 @@ export default function MediaPackViewer({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, currentPage, zoomLevel]);
+  }, [isOpen, currentPage, zoomLevel, totalPages]);
 
   // Scroll active thumbnail into view
   useEffect(() => {
@@ -81,10 +92,6 @@ export default function MediaPackViewer({
   }, [currentPage]);
 
   if (!isOpen) return null;
-
-  const totalPages = MEDIA_PACK_PAGES.length;
-  const activePageData: DocumentPage =
-    MEDIA_PACK_PAGES[currentPage - 1] || MEDIA_PACK_PAGES[0];
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -130,19 +137,19 @@ export default function MediaPackViewer({
       {/* Top Floating Glass Navigation Header */}
       <header className="relative z-20 flex items-center justify-between px-4 sm:px-8 py-3.5 border-b border-white/10 bg-black/40 backdrop-blur-xl">
         {/* Left: Document Branding */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl glass-panel flex items-center justify-center text-amber-400">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-8 h-8 rounded-xl glass-panel flex items-center justify-center text-amber-400 shrink-0">
             <FileText className="w-4 h-4" />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 px-2 py-0.5 rounded-full bg-amber-400/15 border border-amber-400/30">
-                Official Media Pack
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 px-2 py-0.5 rounded-full bg-amber-400/15 border border-amber-400/30 truncate max-w-[200px] sm:max-w-none">
+                {docBadge}
               </span>
-              <span className="text-xs text-white/50 hidden sm:inline-block">2025 / 2026</span>
+              <span className="text-xs text-white/50 hidden sm:inline-block">{docYear}</span>
             </div>
             <h2 className="text-sm sm:text-base font-bold text-white tracking-tight truncate max-w-[200px] sm:max-w-md">
-              Abbay TV & Abbay Digital Media Kit
+              {docTitle}
             </h2>
           </div>
         </div>
@@ -153,7 +160,7 @@ export default function MediaPackViewer({
             <button
               onClick={handlePrevPage}
               disabled={currentPage === 1}
-              className="hover:text-amber-400 disabled:opacity-30 disabled:hover:text-white transition-colors"
+              className="hover:text-amber-400 disabled:opacity-30 disabled:hover:text-white transition-colors cursor-pointer"
               title="Previous Page (ArrowLeft)"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -166,7 +173,7 @@ export default function MediaPackViewer({
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              className="hover:text-amber-400 disabled:opacity-30 disabled:hover:text-white transition-colors"
+              className="hover:text-amber-400 disabled:opacity-30 disabled:hover:text-white transition-colors cursor-pointer"
               title="Next Page (ArrowRight)"
             >
               <ChevronRight className="w-4 h-4" />
@@ -184,14 +191,14 @@ export default function MediaPackViewer({
             <button
               onClick={handleZoomOut}
               disabled={zoomLevel <= 0.7}
-              className="p-1.5 text-white/70 hover:text-white disabled:opacity-30 transition-colors"
+              className="p-1.5 text-white/70 hover:text-white disabled:opacity-30 transition-colors cursor-pointer"
               title="Zoom Out"
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={handleResetZoom}
-              className="px-2 text-[11px] font-mono text-white/60 hover:text-amber-400"
+              className="px-2 text-[11px] font-mono text-white/60 hover:text-amber-400 cursor-pointer"
               title="Reset Zoom"
             >
               {Math.round(zoomLevel * 100)}%
@@ -199,7 +206,7 @@ export default function MediaPackViewer({
             <button
               onClick={handleZoomIn}
               disabled={zoomLevel >= 2.5}
-              className="p-1.5 text-white/70 hover:text-white disabled:opacity-30 transition-colors"
+              className="p-1.5 text-white/70 hover:text-white disabled:opacity-30 transition-colors cursor-pointer"
               title="Zoom In"
             >
               <ZoomIn className="w-3.5 h-3.5" />
@@ -209,7 +216,7 @@ export default function MediaPackViewer({
           {/* Toggle Thumbnails */}
           <button
             onClick={() => setShowThumbnails(!showThumbnails)}
-            className={`glass-button p-2 rounded-full transition-all ${
+            className={`glass-button p-2 rounded-full transition-all cursor-pointer ${
               showThumbnails ? "text-amber-400 border-amber-400/40" : "text-white/70 hover:text-white"
             }`}
             title="Toggle Page Thumbnails"
@@ -220,7 +227,7 @@ export default function MediaPackViewer({
           {/* Fullscreen Toggle */}
           <button
             onClick={toggleFullscreen}
-            className="hidden sm:inline-flex glass-button p-2 rounded-full text-white/70 hover:text-white"
+            className="hidden sm:inline-flex glass-button p-2 rounded-full text-white/70 hover:text-white cursor-pointer"
             title="Toggle Fullscreen"
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -259,7 +266,7 @@ export default function MediaPackViewer({
         >
           <Image
             src={activePageData.image}
-            alt={activePageData.title || `Media Pack Page ${currentPage}`}
+            alt={activePageData.title || `Document Page ${currentPage}`}
             width={2400}
             height={1697}
             priority
@@ -278,66 +285,45 @@ export default function MediaPackViewer({
         </button>
       </div>
 
-      {/* Mobile Page Control Ribbon (Visible on small screens) */}
-      <div className="md:hidden flex items-center justify-between px-4 py-2 border-t border-white/10 bg-black/50 backdrop-blur-md">
-        <button
-          onClick={handlePrevPage}
-          disabled={currentPage === 1}
-          className="glass-button px-3 py-1.5 rounded-full text-xs disabled:opacity-30"
-        >
-          ← Prev
-        </button>
-        <span className="text-xs font-mono font-semibold text-white/90">
-          Page {currentPage} / {totalPages}
-        </span>
-        <button
-          onClick={handleNextPage}
-          disabled={currentPage === totalPages}
-          className="glass-button px-3 py-1.5 rounded-full text-xs disabled:opacity-30"
-        >
-          Next →
-        </button>
-      </div>
-
-      {/* Bottom Thumbnail Scrubber Drawer */}
+      {/* Bottom Floating Interactive Thumbnail Filmstrip */}
       {showThumbnails && (
-        <footer className="relative z-20 border-t border-white/10 bg-black/70 backdrop-blur-2xl p-3 sm:p-4">
+        <div className="relative z-20 border-t border-white/10 bg-black/60 backdrop-blur-2xl py-3 px-4">
           <div
             ref={thumbnailsRef}
-            className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 max-w-7xl mx-auto no-scrollbar scroll-smooth"
+            className="flex items-center gap-2.5 overflow-x-auto no-scrollbar max-w-7xl mx-auto px-2"
           >
-            {MEDIA_PACK_PAGES.map((page) => {
-              const isActive = page.pageNumber === currentPage;
+            {pages.map((page, index) => {
+              const pageNum = index + 1;
+              const isActive = pageNum === currentPage;
               return (
                 <button
                   key={page.pageNumber}
-                  data-thumb-page={page.pageNumber}
+                  data-thumb-page={pageNum}
                   onClick={() => {
-                    setCurrentPage(page.pageNumber);
+                    setCurrentPage(pageNum);
                     setZoomLevel(1);
                   }}
-                  className={`relative flex-shrink-0 rounded-xl overflow-hidden transition-all duration-200 cursor-pointer ${
+                  className={`relative shrink-0 rounded-xl overflow-hidden transition-all duration-200 cursor-pointer ${
                     isActive
                       ? "w-20 sm:w-28 aspect-[16/10] border-2 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.6)] scale-105"
-                      : "w-16 sm:w-20 aspect-[16/10] border border-white/15 opacity-55 hover:opacity-100"
+                      : "w-16 sm:w-20 aspect-[16/10] opacity-50 hover:opacity-100 border border-white/20"
                   }`}
-                  title={`Page ${page.pageNumber}: ${page.title}`}
                 >
                   <Image
                     src={page.thumbnail}
-                    alt={`Thumbnail page ${page.pageNumber}`}
+                    alt={`Thumbnail ${pageNum}`}
                     fill
-                    className="object-cover"
                     sizes="120px"
+                    className="object-cover"
                   />
-                  <div className="pointer-events-none absolute bottom-0 inset-x-0 bg-black/80 text-[9px] font-mono font-bold text-center py-0.5 text-white/90">
-                    {page.pageNumber}
-                  </div>
+                  <span className="absolute bottom-1 right-1 px-1.5 py-0.5 text-[9px] font-mono font-bold bg-black/80 rounded text-white">
+                    {pageNum}
+                  </span>
                 </button>
               );
             })}
           </div>
-        </footer>
+        </div>
       )}
     </div>
   );
