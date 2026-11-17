@@ -1225,8 +1225,7 @@ export const DESIGNER_INFO = {
   ],
   contact: {
     location: "Alfoz Plaza, 7th Floor, Imperial Gerji, Addis Ababa, Ethiopia",
-    email: "zersh44@gmail.com",
-    secondaryEmail: "Daziikroos61@gmail.com",
+    email: "Daziikroos61@gmail.com",
     phone: "+251967125822",
     phoneDisplay: "+251 967 12 5822",
     telegram: "@dazii8",

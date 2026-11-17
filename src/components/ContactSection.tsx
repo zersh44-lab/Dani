@@ -125,13 +125,12 @@ export default function ContactSection() {
   const briefText = `🔥 PROJECT COMMISSION INQUIRY FOR DANI\n\n• Client Name: ${formData.name || "Client"}\n• Work Email: ${formData.email || "Email"}\n• Creative Domain: ${formData.projectType}\n• Preferred Channel: ${preferredChannel.toUpperCase()}\n\n• Project Scope & Objectives:\n${scopeText}\n\nSent from Dani's Creative Portfolio (dani-sigma-flax.vercel.app)`;
 
   const mailtoSubject = `Project Commission Inquiry: [${formData.projectType}] - ${formData.name || "Client"}`;
-  const mailtoBody = `Hi Dani & Zerihun,\n\nI would like to inquire about commissioning a project in ${formData.projectType}.\n\nClient Name: ${formData.name}\nWork Email: ${formData.email}\nCreative Domain: ${formData.projectType}\n\nProject Scope & Objectives:\n${scopeText}\n\nLooking forward to your response!`;
+  const mailtoBody = `Hi Dani,\n\nI would like to inquire about commissioning a project in ${formData.projectType}.\n\nClient Name: ${formData.name}\nWork Email: ${formData.email}\nCreative Domain: ${formData.projectType}\n\nProject Scope & Objectives:\n${scopeText}\n\nLooking forward to your response!`;
 
   const primaryEmail = DESIGNER_INFO.contact.email;
-  const secondaryEmail = DESIGNER_INFO.contact.secondaryEmail || "Daziikroos61@gmail.com";
 
-  const mailtoLink = `mailto:${primaryEmail}?cc=${secondaryEmail}&subject=${encodeURIComponent(mailtoSubject)}&body=${encodeURIComponent(mailtoBody)}`;
-  const gmailWebLink = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(primaryEmail)}&cc=${encodeURIComponent(secondaryEmail)}&su=${encodeURIComponent(mailtoSubject)}&body=${encodeURIComponent(mailtoBody)}`;
+  const mailtoLink = `mailto:${primaryEmail}?subject=${encodeURIComponent(mailtoSubject)}&body=${encodeURIComponent(mailtoBody)}`;
+  const gmailWebLink = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(primaryEmail)}&su=${encodeURIComponent(mailtoSubject)}&body=${encodeURIComponent(mailtoBody)}`;
   const telegramLink = `https://t.me/${DESIGNER_INFO.contact.telegram.replace("@", "")}?text=${encodeURIComponent(briefText)}`;
   const whatsappLink = `https://wa.me/251967125822?text=${encodeURIComponent(briefText)}`;
 
@@ -179,7 +178,6 @@ export default function ContactSection() {
         body: JSON.stringify({
           _subject: mailtoSubject,
           _replyto: formData.email,
-          _cc: secondaryEmail,
           _captcha: "false",
           _template: "table",
           "Client Name": formData.name,
@@ -281,11 +279,6 @@ export default function ContactSection() {
                 >
                   {DESIGNER_INFO.contact.email}
                 </a>
-                {DESIGNER_INFO.contact.secondaryEmail && (
-                  <p className="text-xs text-white/50 font-mono mt-0.5">
-                    Alt / Direct: {DESIGNER_INFO.contact.secondaryEmail}
-                  </p>
-                )}
                 <p className="text-xs text-white/40 mt-0.5">Commercial proposals &amp; client briefs</p>
               </div>
             </div>

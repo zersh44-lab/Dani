@@ -12,9 +12,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Forward to FormSubmit for direct email delivery to Zerihun Geremew (zersh44@gmail.com) with CC to Daziikroos61@gmail.com
+    // Forward to FormSubmit for direct email delivery to Daziikroos61@gmail.com
     try {
-      await fetch("https://formsubmit.co/ajax/zersh44@gmail.com", {
+      await fetch("https://formsubmit.co/ajax/Daziikroos61@gmail.com", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -26,7 +26,6 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           _subject: `New Project Commission Inquiry: [${projectType || "General"}] from ${name}`,
           _replyto: email,
-          _cc: "Daziikroos61@gmail.com",
           _captcha: "false",
           _template: "table",
           "Client Name": name,
