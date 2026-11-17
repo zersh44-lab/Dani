@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Award, ExternalLink, Sparkles, Check, Copy, Maximize2, Minimize2, FileText } from "lucide-react";
 import { Project } from "@/data/projectsData";
 import MagneticButton from "@/components/MagneticButton";
@@ -125,24 +126,35 @@ export default function CaseStudyModal({
 
         {/* Modal Scrollable Body */}
         <div className="overflow-y-auto p-6 sm:p-8 space-y-8">
-          {/* Hero Presentation Artwork with Lightbox toggle */}
+          {/* Hero Presentation Artwork with Lightbox toggle & smooth cross-fade animation */}
           <div
             onClick={() => setIsZoomed(!isZoomed)}
             className={`relative w-full rounded-2xl overflow-hidden bg-black/80 shadow-2xl border border-white/10 transition-all duration-500 cursor-zoom-in ${
               isZoomed ? "aspect-auto min-h-[70vh] p-4 flex items-center justify-center" : "aspect-[16/10] sm:aspect-[16/9]"
             }`}
           >
-            <Image
-              src={project.coverImage}
-              alt={project.title}
-              fill={!isZoomed}
-              width={isZoomed ? 1800 : undefined}
-              height={isZoomed ? 1200 : undefined}
-              priority
-              className={`${isZoomed ? "max-h-[85vh] w-auto object-contain mx-auto" : "object-contain sm:object-cover"} transition-transform duration-500`}
-            />
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={project.id}
+                initial={{ opacity: 0, scale: 0.97, filter: "blur(4px)" }}
+                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                exit={{ opacity: 0, scale: 0.97, filter: "blur(4px)" }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="w-full h-full relative"
+              >
+                <Image
+                  src={project.coverImage}
+                  alt={project.title}
+                  fill={!isZoomed}
+                  width={isZoomed ? 1800 : undefined}
+                  height={isZoomed ? 1200 : undefined}
+                  priority
+                  className={`${isZoomed ? "max-h-[85vh] w-auto object-contain mx-auto" : "object-contain sm:object-cover"} transition-transform duration-500`}
+                />
+              </motion.div>
+            </AnimatePresence>
             {!isZoomed && (
-              <div className="absolute bottom-3 right-3 glass-pill px-3 py-1 text-[11px] text-white/70 flex items-center gap-1.5 opacity-80 hover:opacity-100">
+              <div className="absolute bottom-3 right-3 glass-pill px-3 py-1 text-[11px] text-white/70 flex items-center gap-1.5 opacity-80 hover:opacity-100 z-10">
                 <Maximize2 className="w-3.5 h-3.5 text-amber-400" />
                 <span>Click to Expand Lightbox</span>
               </div>

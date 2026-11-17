@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import {
   X,
   ChevronLeft,
@@ -12,7 +13,6 @@ import {
   Minimize2,
   Grid,
   FileText,
-  Download,
 } from "lucide-react";
 import { MEDIA_PACK_PAGES, DocumentPage, Project } from "@/data/projectsData";
 
@@ -30,6 +30,7 @@ export default function MediaPackViewer({
   project = null,
 }: MediaPackViewerProps) {
   const [currentPage, setCurrentPage] = useState<number>(initialPage);
+  const [direction, setDirection] = useState<number>(0);
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [showThumbnails, setShowThumbnails] = useState<boolean>(true);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
@@ -51,8 +52,32 @@ export default function MediaPackViewer({
 
   useEffect(() => {
     setCurrentPage(initialPage);
+    setDirection(0);
     setZoomLevel(1);
   }, [initialPage, isOpen, project]);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setDirection(1);
+      setCurrentPage((prev) => prev + 1);
+      setZoomLevel(1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setDirection(-1);
+      setCurrentPage((prev) => prev - 1);
+      setZoomLevel(1);
+    }
+  };
+
+  const handleThumbnailClick = (pageNum: number) => {
+    if (pageNum === currentPage) return;
+    setDirection(pageNum > currentPage ? 1 : -1);
+    setCurrentPage(pageNum);
+    setZoomLevel(1);
+  };
 
   // Keyboard navigation
   useEffect(() => {
@@ -93,20 +118,6 @@ export default function MediaPackViewer({
 
   if (!isOpen) return null;
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage((prev) => prev + 1);
-      setZoomLevel(1);
-    }
-  };
-
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-      setZoomLevel(1);
-    }
-  };
-
   const handleZoomIn = () => {
     setZoomLevel((prev) => Math.min(prev + 0.35, 2.5));
   };
@@ -127,6 +138,40 @@ export default function MediaPackViewer({
       document.exitFullscreen().catch(() => {});
       setIsFullscreen(false);
     }
+  };
+
+  // Page turn motion variants
+  const spreadVariants: Variants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? 90 : dir < 0 ? -90 : 0,
+      opacity: 0,
+      scale: 0.96,
+      filter: "blur(6px)",
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+      filter: "blur(0px)",
+      transition: {
+        x: { type: "spring", stiffness: 320, damping: 30 },
+        opacity: { duration: 0.3 },
+        scale: { duration: 0.3 },
+        filter: { duration: 0.3 },
+      },
+    },
+    exit: (dir: number) => ({
+      x: dir > 0 ? -90 : 90,
+      opacity: 0,
+      scale: 0.96,
+      filter: "blur(6px)",
+      transition: {
+        x: { type: "spring", stiffness: 320, damping: 30 },
+        opacity: { duration: 0.22 },
+        scale: { duration: 0.22 },
+        filter: { duration: 0.22 },
+      },
+    }),
   };
 
   return (
@@ -245,7 +290,7 @@ export default function MediaPackViewer({
       </header>
 
       {/* Main Document Presentation Stage */}
-      <div className="relative flex-1 w-full overflow-auto flex items-center justify-center p-3 sm:p-6 bg-black/60">
+      <div className="relative flex-1 w-full overflow-hidden flex items-center justify-center p-3 sm:p-6 bg-black/60">
         {/* Previous Page Floating Side Chevron */}
         <button
           onClick={handlePrevPage}
@@ -256,22 +301,36 @@ export default function MediaPackViewer({
           <ChevronLeft className="w-6 h-6" />
         </button>
 
-        {/* Current Document Spread Frame */}
+        {/* Current Document Spread Frame with Smooth Transition Animation */}
         <div
-          className="relative max-w-full max-h-full transition-transform duration-300 ease-out shadow-[0_20px_70px_rgba(0,0,0,0.9)] rounded-2xl overflow-hidden border border-white/10"
+          className="relative max-w-full max-h-full flex items-center justify-center"
           style={{
             transform: `scale(${zoomLevel})`,
             transformOrigin: "center center",
+            transition: "transform 0.3s ease-out",
           }}
         >
-          <Image
-            src={activePageData.image}
-            alt={activePageData.title || `Document Page ${currentPage}`}
-            width={2400}
-            height={1697}
-            priority
-            className="w-auto h-auto max-h-[82vh] max-w-[94vw] object-contain rounded-2xl"
-          />
+          <AnimatePresence initial={false} custom={direction} mode="wait">
+            <motion.div
+              key={currentPage}
+              custom={direction}
+              variants={spreadVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              className="relative max-w-full max-h-full shadow-[0_25px_80px_rgba(0,0,0,0.95)] rounded-2xl overflow-hidden border border-white/10"
+            >
+              <Image
+                src={activePageData.image}
+                alt={activePageData.title || `Document Page ${currentPage}`}
+                width={2400}
+                height={1697}
+                priority
+                className="w-auto h-auto max-h-[82vh] max-w-[94vw] object-contain rounded-2xl select-none"
+                draggable={false}
+              />
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         {/* Next Page Floating Side Chevron */}
@@ -299,14 +358,11 @@ export default function MediaPackViewer({
                 <button
                   key={page.pageNumber}
                   data-thumb-page={pageNum}
-                  onClick={() => {
-                    setCurrentPage(pageNum);
-                    setZoomLevel(1);
-                  }}
-                  className={`relative shrink-0 rounded-xl overflow-hidden transition-all duration-200 cursor-pointer ${
+                  onClick={() => handleThumbnailClick(pageNum)}
+                  className={`relative shrink-0 rounded-xl overflow-hidden transition-all duration-300 cursor-pointer ${
                     isActive
                       ? "w-20 sm:w-28 aspect-[16/10] border-2 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.6)] scale-105"
-                      : "w-16 sm:w-20 aspect-[16/10] opacity-50 hover:opacity-100 border border-white/20"
+                      : "w-16 sm:w-20 aspect-[16/10] opacity-50 hover:opacity-100 border border-white/20 hover:scale-102"
                   }`}
                 >
                   <Image
