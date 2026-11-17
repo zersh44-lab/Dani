@@ -12,6 +12,8 @@ import {
   ArrowUpRight,
   ChevronDown,
   Check,
+  Copy,
+  MessageCircle,
   Share2,
   Video,
   Sparkles,
@@ -94,6 +96,8 @@ export default function ContactSection() {
   const [isDispatching, setIsDispatching] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [preferredChannel, setPreferredChannel] = useState<"telegram" | "email" | "whatsapp">("telegram");
+  const [copied, setCopied] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -116,27 +120,98 @@ export default function ContactSection() {
   const selectedDomain =
     CREATIVE_DOMAINS.find((d) => d.label === formData.projectType) || CREATIVE_DOMAINS[0];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Helper to build transmission URLs
+  const scopeText = formData.message.trim() || "No specific scope provided.";
+  const briefText = `🔥 PROJECT COMMISSION INQUIRY FOR DANI\n\n• Client Name: ${formData.name || "Client"}\n• Work Email: ${formData.email || "Email"}\n• Creative Domain: ${formData.projectType}\n• Preferred Channel: ${preferredChannel.toUpperCase()}\n\n• Project Scope & Objectives:\n${scopeText}\n\nSent from Dani's Creative Portfolio (dani-sigma-flax.vercel.app)`;
+
+  const mailtoSubject = `Project Commission Inquiry: [${formData.projectType}] - ${formData.name || "Client"}`;
+  const mailtoBody = `Hi Dani,\n\nI would like to inquire about commissioning a project in ${formData.projectType}.\n\nClient Name: ${formData.name}\nWork Email: ${formData.email}\nCreative Domain: ${formData.projectType}\n\nProject Scope & Objectives:\n${scopeText}\n\nLooking forward to your response!`;
+
+  const mailtoLink = `mailto:${DESIGNER_INFO.contact.email}?subject=${encodeURIComponent(mailtoSubject)}&body=${encodeURIComponent(mailtoBody)}`;
+  const telegramLink = `https://t.me/${DESIGNER_INFO.contact.telegram.replace("@", "")}?text=${encodeURIComponent(briefText)}`;
+  const whatsappLink = `https://wa.me/251967125822?text=${encodeURIComponent(briefText)}`;
+
+  const handleCopyBrief = () => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(briefText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email) return;
 
     setIsDispatching(true);
 
+    // 1. Send via local Next.js API route
+    try {
+      await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          projectType: formData.projectType,
+          message: scopeText,
+          preferredMethod: preferredChannel,
+        }),
+      });
+    } catch (err) {
+      console.warn("API dispatch warning:", err);
+    }
+
+    // 2. Also forward directly to FormSubmit for instant Gmail notification to Dani
+    try {
+      await fetch("https://formsubmit.co/ajax/Daziikroos61@gmail.com", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({
+          _subject: mailtoSubject,
+          _replyto: formData.email,
+          _captcha: "false",
+          _template: "table",
+          "Client Name": formData.name,
+          "Client Email": formData.email,
+          "Creative Domain": formData.projectType,
+          "Preferred Channel": preferredChannel.toUpperCase(),
+          "Project Scope": scopeText,
+        }),
+      });
+    } catch (err) {
+      console.warn("FormSubmit direct forward warning:", err);
+    }
+
+    // 3. Open chosen direct channel automatically
+    if (typeof window !== "undefined") {
+      if (preferredChannel === "telegram") {
+        window.open(telegramLink, "_blank");
+      } else if (preferredChannel === "whatsapp") {
+        window.open(whatsappLink, "_blank");
+      } else if (preferredChannel === "email") {
+        window.open(mailtoLink, "_blank");
+      }
+    }
+
+    // 4. Conclude dispatch animation and render celebratory confirmation screen
     setTimeout(() => {
       setIsDispatching(false);
       setFormSubmitted(true);
-      // Trigger celebratory confetti
       try {
         confetti({
-          particleCount: 80,
-          spread: 70,
-          origin: { y: 0.7 },
+          particleCount: 90,
+          spread: 75,
+          origin: { y: 0.65 },
           colors: ["#ffd200", "#d4af37", "#ffffff", "#0284c7"],
         });
       } catch (err) {
         // ignore
       }
-    }, 1400);
+    }, 1200);
   };
 
   return (
@@ -170,82 +245,67 @@ export default function ContactSection() {
               <div className="p-3 rounded-2xl glass-pill text-amber-400 shrink-0 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
                 <Phone className="w-5 h-5" />
               </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-1">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-white/50">
-                    Direct Phone Line
-                  </h4>
-                  <span className="text-[10px] font-mono font-semibold text-amber-400/80 px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20">
-                    VOICE / CALL
-                  </span>
-                </div>
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-white/50 mb-1">
+                  Direct Phone &amp; Call Desk
+                </h4>
                 <a
                   href={`tel:${DESIGNER_INFO.contact.phone}`}
-                  className="text-base sm:text-lg font-bold font-mono text-white hover:text-amber-400 transition-colors inline-flex items-center gap-2 group"
-                  data-cursor="pointer"
-                  title="Call Direct Line"
+                  className="text-lg font-bold text-white hover:text-amber-400 transition-colors font-mono tracking-tight"
                 >
-                  <span>{DESIGNER_INFO.contact.phoneDisplay}</span>
-                  <ArrowUpRight className="w-4 h-4 text-white/40 group-hover:text-amber-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                  {DESIGNER_INFO.contact.phoneDisplay}
                 </a>
+                <p className="text-xs text-white/40 mt-0.5">Direct line · Available 9:00 AM - 7:00 PM EAT</p>
               </div>
             </div>
 
-            {/* Electronic Correspondence */}
-            <div className="flex items-start gap-4 border-t border-white/5 pt-5">
+            {/* Official Email */}
+            <div className="flex items-start gap-4">
               <div className="p-3 rounded-2xl glass-pill text-amber-400 shrink-0 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
                 <Mail className="w-5 h-5" />
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-white/50">
-                    Electronic Correspondence
-                  </h4>
-                  <span className="text-[10px] font-mono font-semibold text-amber-400/80 px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/20">
-                    DIRECT EMAIL
-                  </span>
-                </div>
+              <div className="min-w-0">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-white/50 mb-1">
+                  Official Email Address
+                </h4>
                 <a
                   href={`mailto:${DESIGNER_INFO.contact.email}`}
-                  className="text-sm sm:text-base font-semibold font-mono text-white hover:text-amber-400 transition-colors break-all inline-flex items-center gap-2 group"
-                  data-cursor="pointer"
-                  title="Send Direct Email"
+                  className="text-base sm:text-lg font-bold text-white hover:text-amber-400 transition-colors font-mono tracking-tight break-all"
                 >
-                  <span>{DESIGNER_INFO.contact.email}</span>
-                  <ArrowUpRight className="w-4 h-4 text-white/40 group-hover:text-amber-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0" />
+                  {DESIGNER_INFO.contact.email}
                 </a>
+                <p className="text-xs text-white/40 mt-0.5">Commercial proposals &amp; client briefs</p>
               </div>
             </div>
 
-            {/* Social & Instant Dialogue (Telegram & Instagram) */}
+            {/* Direct Instant Channels: Telegram & Instagram */}
             <div className="border-t border-white/5 pt-5 space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white/50 mb-2">
-                Instant Dialogue & Visual Feeds
+              <h4 className="text-xs font-bold uppercase tracking-wider text-white/50">
+                Instant Chat &amp; Portfolios
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Telegram Card */}
+                {/* Telegram Direct Channel */}
                 <a
                   href={DESIGNER_INFO.contact.telegramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-3.5 rounded-2xl glass-card hover:border-sky-400/40 hover:bg-sky-500/10 transition-all duration-300 flex items-center justify-between group"
+                  className="flex items-center justify-between p-3.5 rounded-2xl glass-card hover:border-sky-400/50 hover:bg-sky-500/10 transition-all duration-300 group cursor-pointer"
                   data-cursor="pointer"
-                  title="Open Telegram Chat"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-sky-500/15 border border-sky-400/30 text-sky-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-[0_0_12px_rgba(56,189,248,0.2)] overflow-hidden">
                       <Image
                         src="/images/paperplane.webp"
                         alt="Telegram"
-                        width={60}
-                        height={45}
+                        width={28}
+                        height={28}
                         unoptimized
                         className="w-7 h-auto object-contain filter drop-shadow-[0_2px_8px_rgba(56,189,248,0.4)] group-hover:scale-110 transition-transform"
                       />
                     </div>
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-white/40 block">
-                        Telegram
+                        Telegram Desk
                       </span>
                       <span className="text-sm font-bold text-white group-hover:text-sky-300 transition-colors font-mono">
                         {DESIGNER_INFO.contact.telegram}
@@ -255,29 +315,18 @@ export default function ContactSection() {
                   <ArrowUpRight className="w-4 h-4 text-white/30 group-hover:text-sky-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
                 </a>
 
-                {/* Instagram Card */}
+                {/* Instagram Showcase */}
                 <a
                   href={DESIGNER_INFO.contact.instagramUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-3.5 rounded-2xl glass-card hover:border-pink-400/40 hover:bg-pink-500/10 transition-all duration-300 flex items-center justify-between group"
+                  className="flex items-center justify-between p-3.5 rounded-2xl glass-card hover:border-pink-400/50 hover:bg-pink-500/10 transition-all duration-300 group cursor-pointer"
                   data-cursor="pointer"
-                  title="Visit Instagram Profile"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500/20 via-pink-500/20 to-purple-500/20 border border-pink-400/30 text-pink-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform shadow-[0_0_12px_rgba(244,114,182,0.2)]">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="w-4 h-4"
-                      >
-                        <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                        <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+                      <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
                       </svg>
                     </div>
                     <div>
@@ -328,10 +377,10 @@ export default function ContactSection() {
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                    Dispatching Inquiry to Dani Studio...
+                    Transmitting Inquiry to Dani&apos;s Desk...
                   </h3>
                   <p className="text-xs text-white/50 max-w-sm mx-auto leading-relaxed">
-                    Encrypting project brief and transmitting directly to Dani&apos;s creative desk.
+                    Encrypting project brief and establishing direct transmission via {preferredChannel.toUpperCase()}.
                   </p>
                 </div>
                 <div className="w-44 h-1.5 rounded-full bg-white/10 mx-auto overflow-hidden p-0.5 border border-white/10">
@@ -339,30 +388,138 @@ export default function ContactSection() {
                 </div>
               </div>
             ) : formSubmitted ? (
-              <div className="text-center py-12 space-y-4 animate-in fade-in zoom-in-95 duration-500">
-                <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 mx-auto flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.3)]">
-                  <CheckCircle2 className="w-8 h-8" />
+              <div className="py-8 space-y-6 animate-in fade-in zoom-in-95 duration-500">
+                <div className="text-center space-y-3">
+                  <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 mx-auto flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+                    <CheckCircle2 className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white tracking-tight">
+                    Inquiry Prepared &amp; Dispatched!
+                  </h3>
+                  <p className="text-sm text-white/70 max-w-md mx-auto leading-relaxed">
+                    Thank you, <span className="text-amber-400 font-semibold">{formData.name}</span>.
+                    Your brief for <span className="text-white font-medium">{formData.projectType}</span> has been processed.
+                  </p>
                 </div>
-                <h3 className="text-2xl font-bold text-white tracking-tight">
-                  Inquiry Dispatched Successfully
-                </h3>
-                <p className="text-sm text-white/60 max-w-md mx-auto leading-relaxed">
-                  Thank you, <span className="text-amber-400 font-medium">{formData.name}</span>.
-                  Your project scope has been received. Dani will review your specifications and
-                  respond within 24 business hours.
-                </p>
-                <button
-                  onClick={() => {
-                    setFormSubmitted(false);
-                    setFormData({ name: "", email: "", projectType: CREATIVE_DOMAINS[0].label, message: "" });
-                  }}
-                  className="mt-4 px-6 py-2.5 rounded-full glass-button text-xs text-white/80 hover:text-white"
-                >
-                  Send Another Inquiry
-                </button>
+
+                {/* Structured Brief Summary Card */}
+                <div className="glass-card rounded-2xl p-5 border border-white/10 space-y-3 bg-black/40">
+                  <div className="flex items-center justify-between text-xs border-b border-white/10 pb-2">
+                    <span className="font-mono text-white/50 uppercase">Submission Details</span>
+                    <span className="font-mono text-emerald-400 font-bold flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Active Transmission
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="text-white/40 block">Client:</span>
+                      <span className="text-white font-medium">{formData.name}</span>
+                    </div>
+                    <div>
+                      <span className="text-white/40 block">Work Email:</span>
+                      <span className="text-white font-mono">{formData.email}</span>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <span className="text-white/40 block">Creative Domain:</span>
+                      <span className="text-amber-300 font-semibold">{formData.projectType}</span>
+                    </div>
+                    {formData.message && (
+                      <div className="sm:col-span-2">
+                        <span className="text-white/40 block">Scope Brief:</span>
+                        <p className="text-white/80 italic mt-0.5 line-clamp-3 bg-white/5 p-2 rounded-lg text-[11px]">
+                          &ldquo;{formData.message}&rdquo;
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Instant 1-Click Direct Delivery Buttons */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-white/60">
+                      Confirm Transmission via Direct Channel
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleCopyBrief}
+                      className="text-[11px] font-mono text-amber-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="text-emerald-400 font-bold">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Copy Brief</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {/* Telegram */}
+                    <a
+                      href={telegramLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-3 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-white flex flex-col items-center justify-center gap-1 text-center transition-all group shadow-[0_0_15px_rgba(56,189,248,0.2)] cursor-pointer"
+                    >
+                      <div className="flex items-center gap-1.5 font-bold text-xs text-sky-300">
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Telegram</span>
+                      </div>
+                      <span className="text-[10px] text-white/60 font-mono">@dazii8</span>
+                    </a>
+
+                    {/* WhatsApp */}
+                    <a
+                      href={whatsappLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-3 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-white flex flex-col items-center justify-center gap-1 text-center transition-all group shadow-[0_0_15px_rgba(16,185,129,0.2)] cursor-pointer"
+                    >
+                      <div className="flex items-center gap-1.5 font-bold text-xs text-emerald-300">
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>WhatsApp</span>
+                      </div>
+                      <span className="text-[10px] text-white/60 font-mono">+251 967 12 5822</span>
+                    </a>
+
+                    {/* Direct Email */}
+                    <a
+                      href={mailtoLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-white flex flex-col items-center justify-center gap-1 text-center transition-all group shadow-[0_0_15px_rgba(245,158,11,0.2)] cursor-pointer"
+                    >
+                      <div className="flex items-center gap-1.5 font-bold text-xs text-amber-300">
+                        <Mail className="w-3.5 h-3.5" />
+                        <span>Gmail / Mail</span>
+                      </div>
+                      <span className="text-[10px] text-white/60 font-mono truncate max-w-full">
+                        Daziikroos61
+                      </span>
+                    </a>
+                  </div>
+                </div>
+
+                <div className="text-center pt-2">
+                  <button
+                    onClick={() => {
+                      setFormSubmitted(false);
+                      setFormData({ name: "", email: "", projectType: CREATIVE_DOMAINS[0].label, message: "" });
+                    }}
+                    className="px-6 py-2.5 rounded-full glass-button text-xs text-white/70 hover:text-white cursor-pointer"
+                  >
+                    ← Send Another Inquiry
+                  </button>
+                </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <h3 className="text-xl font-bold text-white tracking-tight mb-1">
                     Project Commission Inquiry
@@ -373,7 +530,7 @@ export default function ContactSection() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-white/70 uppercase tracking-wider">
                       Your Name
                     </label>
@@ -387,7 +544,7 @@ export default function ContactSection() {
                     />
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-white/70 uppercase tracking-wider">
                       Work Email
                     </label>
@@ -402,7 +559,8 @@ export default function ContactSection() {
                   </div>
                 </div>
 
-                <div className="space-y-2 relative" ref={dropdownRef}>
+                {/* Creative Domain Dropdown */}
+                <div className="space-y-1.5 relative" ref={dropdownRef}>
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-semibold text-white/70 uppercase tracking-wider">
                       Creative Domain
@@ -416,7 +574,7 @@ export default function ContactSection() {
                   <button
                     type="button"
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="w-full px-4 py-3.5 rounded-2xl glass-card text-sm text-white flex items-center justify-between focus:outline-none focus:border-amber-400/50 hover:border-white/30 transition-all cursor-pointer group bg-[#080c16]/80 backdrop-blur-xl"
+                    className="w-full px-4 py-3 rounded-2xl glass-card text-sm text-white flex items-center justify-between focus:outline-none focus:border-amber-400/50 hover:border-white/30 transition-all cursor-pointer group bg-[#080c16]/80 backdrop-blur-xl"
                     aria-haspopup="listbox"
                     aria-expanded={isDropdownOpen}
                   >
@@ -528,12 +686,13 @@ export default function ContactSection() {
                   </AnimatePresence>
                 </div>
 
-                <div className="space-y-2">
+                {/* Scope Textarea */}
+                <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-white/70 uppercase tracking-wider">
-                    Project Scope & Objectives
+                    Project Scope &amp; Objectives
                   </label>
                   <textarea
-                    rows={4}
+                    rows={3}
                     required
                     placeholder="Tell me about your brand, timeline, and deliverables..."
                     value={formData.message}
@@ -542,9 +701,47 @@ export default function ContactSection() {
                   />
                 </div>
 
+                {/* Direct Channel Selection Pills */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-white/70 uppercase tracking-wider flex items-center justify-between">
+                    <span>Direct Delivery Channel</span>
+                    <span className="text-[10px] text-amber-400/80 font-normal">Connects Directly to Dani</span>
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: "telegram", label: "Telegram", sub: "@dazii8", icon: Send },
+                      { id: "whatsapp", label: "WhatsApp", sub: "+251 967...", icon: MessageCircle },
+                      { id: "email", label: "Email", sub: "Direct Mail", icon: Mail },
+                    ].map((ch) => {
+                      const isChSelected = preferredChannel === ch.id;
+                      const ChIcon = ch.icon;
+                      return (
+                        <button
+                          key={ch.id}
+                          type="button"
+                          onClick={() => setPreferredChannel(ch.id as any)}
+                          className={`p-2.5 rounded-xl border text-left transition-all duration-200 cursor-pointer flex flex-col justify-between ${
+                            isChSelected
+                              ? "bg-amber-400/15 border-amber-400/50 text-white shadow-[0_0_15px_rgba(245,158,11,0.2)]"
+                              : "glass-card border-white/10 text-white/60 hover:text-white hover:border-white/20"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <span className="text-xs font-bold">{ch.label}</span>
+                            <ChIcon className={`w-3 h-3 ${isChSelected ? "text-amber-400" : "text-white/40"}`} />
+                          </div>
+                          <span className="text-[10px] text-white/45 font-mono truncate">{ch.sub}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Submit Action Button */}
                 <button
                   type="submit"
-                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500/80 via-amber-400/90 to-amber-500/80 hover:from-amber-400 hover:to-amber-300 text-black font-bold text-sm tracking-wide shadow-[0_10px_30px_rgba(245,158,11,0.3)] transition-all duration-300 flex items-center justify-center gap-2 group cursor-pointer"
+                  disabled={isDispatching}
+                  className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500/90 via-amber-400 to-amber-500/90 hover:from-amber-400 hover:to-amber-300 text-black font-bold text-sm tracking-wide shadow-[0_10px_30px_rgba(245,158,11,0.35)] transition-all duration-300 flex items-center justify-center gap-2 group cursor-pointer disabled:opacity-50"
                   data-cursor="pointer"
                 >
                   <span>Submit Project Inquiry</span>
