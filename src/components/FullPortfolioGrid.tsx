@@ -47,7 +47,7 @@ export default function FullPortfolioGrid({
             Full Portfolio
           </h2>
           <p className="text-white/60 text-sm sm:text-base mt-2 max-w-xl">
-            Explore 24 verified real client commissions spanning television branding, corporate
+            Explore all 61 verified original works and the complete 37-page corporate media pack spanning television branding, corporate
             identities, tactile packaging, event posters, and high-CTR video packages.
           </p>
         </div>
