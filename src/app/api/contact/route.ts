@@ -12,18 +12,21 @@ export async function POST(request: Request) {
       );
     }
 
-    // Attempt delivery via FormSubmit to Dani's verified Gmail
+    // Forward to FormSubmit for direct email delivery to Zerihun Geremew (zersh44@gmail.com) with CC to Daziikroos61@gmail.com
     try {
-      await fetch("https://formsubmit.co/ajax/Daziikroos61@gmail.com", {
+      await fetch("https://formsubmit.co/ajax/zersh44@gmail.com", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
+          "Origin": "https://dani-sigma-flax.vercel.app",
+          "Referer": "https://dani-sigma-flax.vercel.app/",
           "User-Agent": "Dani-Portfolio/1.0",
         },
         body: JSON.stringify({
           _subject: `New Project Commission Inquiry: [${projectType || "General"}] from ${name}`,
           _replyto: email,
+          _cc: "Daziikroos61@gmail.com",
           _captcha: "false",
           _template: "table",
           "Client Name": name,

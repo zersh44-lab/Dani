@@ -125,9 +125,13 @@ export default function ContactSection() {
   const briefText = `🔥 PROJECT COMMISSION INQUIRY FOR DANI\n\n• Client Name: ${formData.name || "Client"}\n• Work Email: ${formData.email || "Email"}\n• Creative Domain: ${formData.projectType}\n• Preferred Channel: ${preferredChannel.toUpperCase()}\n\n• Project Scope & Objectives:\n${scopeText}\n\nSent from Dani's Creative Portfolio (dani-sigma-flax.vercel.app)`;
 
   const mailtoSubject = `Project Commission Inquiry: [${formData.projectType}] - ${formData.name || "Client"}`;
-  const mailtoBody = `Hi Dani,\n\nI would like to inquire about commissioning a project in ${formData.projectType}.\n\nClient Name: ${formData.name}\nWork Email: ${formData.email}\nCreative Domain: ${formData.projectType}\n\nProject Scope & Objectives:\n${scopeText}\n\nLooking forward to your response!`;
+  const mailtoBody = `Hi Dani & Zerihun,\n\nI would like to inquire about commissioning a project in ${formData.projectType}.\n\nClient Name: ${formData.name}\nWork Email: ${formData.email}\nCreative Domain: ${formData.projectType}\n\nProject Scope & Objectives:\n${scopeText}\n\nLooking forward to your response!`;
 
-  const mailtoLink = `mailto:${DESIGNER_INFO.contact.email}?subject=${encodeURIComponent(mailtoSubject)}&body=${encodeURIComponent(mailtoBody)}`;
+  const primaryEmail = DESIGNER_INFO.contact.email;
+  const secondaryEmail = DESIGNER_INFO.contact.secondaryEmail || "Daziikroos61@gmail.com";
+
+  const mailtoLink = `mailto:${primaryEmail}?cc=${secondaryEmail}&subject=${encodeURIComponent(mailtoSubject)}&body=${encodeURIComponent(mailtoBody)}`;
+  const gmailWebLink = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(primaryEmail)}&cc=${encodeURIComponent(secondaryEmail)}&su=${encodeURIComponent(mailtoSubject)}&body=${encodeURIComponent(mailtoBody)}`;
   const telegramLink = `https://t.me/${DESIGNER_INFO.contact.telegram.replace("@", "")}?text=${encodeURIComponent(briefText)}`;
   const whatsappLink = `https://wa.me/251967125822?text=${encodeURIComponent(briefText)}`;
 
@@ -162,17 +166,20 @@ export default function ContactSection() {
       console.warn("API dispatch warning:", err);
     }
 
-    // 2. Also forward directly to FormSubmit for instant Gmail notification to Dani
+    // 2. Also forward directly to FormSubmit for instant Gmail notification to Zerihun & Dani
     try {
-      await fetch("https://formsubmit.co/ajax/Daziikroos61@gmail.com", {
+      await fetch(`https://formsubmit.co/ajax/${primaryEmail}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
+          "Origin": typeof window !== "undefined" ? window.location.origin : "https://dani-sigma-flax.vercel.app",
+          "Referer": typeof window !== "undefined" ? window.location.href : "https://dani-sigma-flax.vercel.app/",
         },
         body: JSON.stringify({
           _subject: mailtoSubject,
           _replyto: formData.email,
+          _cc: secondaryEmail,
           _captcha: "false",
           _template: "table",
           "Client Name": formData.name,
@@ -193,7 +200,7 @@ export default function ContactSection() {
       } else if (preferredChannel === "whatsapp") {
         window.open(whatsappLink, "_blank");
       } else if (preferredChannel === "email") {
-        window.open(mailtoLink, "_blank");
+        window.open(gmailWebLink, "_blank");
       }
     }
 
@@ -274,6 +281,11 @@ export default function ContactSection() {
                 >
                   {DESIGNER_INFO.contact.email}
                 </a>
+                {DESIGNER_INFO.contact.secondaryEmail && (
+                  <p className="text-xs text-white/50 font-mono mt-0.5">
+                    Alt / Direct: {DESIGNER_INFO.contact.secondaryEmail}
+                  </p>
+                )}
                 <p className="text-xs text-white/40 mt-0.5">Commercial proposals &amp; client briefs</p>
               </div>
             </div>
@@ -434,6 +446,20 @@ export default function ContactSection() {
                   </div>
                 </div>
 
+                {/* One-Time FormSubmit Activation Alert Banner */}
+                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs space-y-2 text-left">
+                  <div className="flex items-center gap-2 font-bold text-amber-300">
+                    <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>Action Required: Activate FormSubmit to Receive Inquiries</span>
+                  </div>
+                  <p className="text-white/80 text-[11px] leading-relaxed">
+                    FormSubmit requires a <strong>one-time activation</strong> before forwarding automated form submissions. Please check your inbox or Spam/Junk folder at <strong className="text-white font-mono">{primaryEmail}</strong> for an email from <em>FormSubmit</em> and click <strong className="text-amber-300">&ldquo;Activate Form&rdquo;</strong>.
+                  </p>
+                  <p className="text-white/60 text-[10px]">
+                    Once activated, all future inquiries will automatically arrive in your inbox. In the meantime, use the 1-click channels below:
+                  </p>
+                </div>
+
                 {/* Instant 1-Click Direct Delivery Buttons */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -459,49 +485,98 @@ export default function ContactSection() {
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {/* Telegram */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Gmail Web (1-Click) */}
+                    <a
+                      href={gmailWebLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-3.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-white flex items-center justify-between transition-all group shadow-[0_0_15px_rgba(245,158,11,0.2)] cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-amber-400/20 border border-amber-400/30 text-amber-300 flex items-center justify-center">
+                          <Mail className="w-4 h-4" />
+                        </div>
+                        <div className="text-left">
+                          <div className="font-bold text-xs text-amber-300 flex items-center gap-1">
+                            <span>Open in Gmail (Web)</span>
+                            <ArrowUpRight className="w-3 h-3 text-amber-400/70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                          </div>
+                          <span className="text-[10px] text-white/60 font-mono">{primaryEmail}</span>
+                        </div>
+                      </div>
+                      <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30 font-bold">
+                        1-Click
+                      </span>
+                    </a>
+
+                    {/* Telegram Desk */}
                     <a
                       href={telegramLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-3 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-white flex flex-col items-center justify-center gap-1 text-center transition-all group shadow-[0_0_15px_rgba(56,189,248,0.2)] cursor-pointer"
+                      className="p-3.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-white flex items-center justify-between transition-all group shadow-[0_0_15px_rgba(56,189,248,0.2)] cursor-pointer"
                     >
-                      <div className="flex items-center gap-1.5 font-bold text-xs text-sky-300">
-                        <Send className="w-3.5 h-3.5" />
-                        <span>Telegram</span>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-sky-400/20 border border-sky-400/30 text-sky-300 flex items-center justify-center">
+                          <Send className="w-4 h-4" />
+                        </div>
+                        <div className="text-left">
+                          <div className="font-bold text-xs text-sky-300 flex items-center gap-1">
+                            <span>Telegram Desk</span>
+                            <ArrowUpRight className="w-3 h-3 text-sky-400/70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                          </div>
+                          <span className="text-[10px] text-white/60 font-mono">{DESIGNER_INFO.contact.telegram}</span>
+                        </div>
                       </div>
-                      <span className="text-[10px] text-white/60 font-mono">@dazii8</span>
+                      <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-sky-400/20 text-sky-300 border border-sky-400/30 font-bold">
+                        Instant
+                      </span>
                     </a>
 
-                    {/* WhatsApp */}
+                    {/* WhatsApp Desk */}
                     <a
                       href={whatsappLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-3 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-white flex flex-col items-center justify-center gap-1 text-center transition-all group shadow-[0_0_15px_rgba(16,185,129,0.2)] cursor-pointer"
+                      className="p-3.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-white flex items-center justify-between transition-all group shadow-[0_0_15px_rgba(16,185,129,0.2)] cursor-pointer"
                     >
-                      <div className="flex items-center gap-1.5 font-bold text-xs text-emerald-300">
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        <span>WhatsApp</span>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-400/20 border border-emerald-400/30 text-emerald-300 flex items-center justify-center">
+                          <MessageCircle className="w-4 h-4" />
+                        </div>
+                        <div className="text-left">
+                          <div className="font-bold text-xs text-emerald-300 flex items-center gap-1">
+                            <span>WhatsApp Desk</span>
+                            <ArrowUpRight className="w-3 h-3 text-emerald-400/70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                          </div>
+                          <span className="text-[10px] text-white/60 font-mono">{DESIGNER_INFO.contact.phoneDisplay}</span>
+                        </div>
                       </div>
-                      <span className="text-[10px] text-white/60 font-mono">+251 967 12 5822</span>
+                      <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 font-bold">
+                        Direct
+                      </span>
                     </a>
 
-                    {/* Direct Email */}
+                    {/* Default Mail App */}
                     <a
                       href={mailtoLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-white flex flex-col items-center justify-center gap-1 text-center transition-all group shadow-[0_0_15px_rgba(245,158,11,0.2)] cursor-pointer"
+                      className="p-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white flex items-center justify-between transition-all group cursor-pointer"
                     >
-                      <div className="flex items-center gap-1.5 font-bold text-xs text-amber-300">
-                        <Mail className="w-3.5 h-3.5" />
-                        <span>Gmail / Mail</span>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/15 text-white/80 flex items-center justify-center">
+                          <Mail className="w-4 h-4" />
+                        </div>
+                        <div className="text-left">
+                          <div className="font-bold text-xs text-white/90 flex items-center gap-1">
+                            <span>Default Mail App</span>
+                            <ArrowUpRight className="w-3 h-3 text-white/40 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                          </div>
+                          <span className="text-[10px] text-white/50 font-mono">mailto: client</span>
+                        </div>
                       </div>
-                      <span className="text-[10px] text-white/60 font-mono truncate max-w-full">
-                        Daziikroos61
-                      </span>
                     </a>
                   </div>
                 </div>
